@@ -1,0 +1,17 @@
+SET ANDROID_HOME=F:/of/android-sdk
+SET JAVA_HOME=F:\OF\JDK
+SET OF_ANDROID=.
+SET OF_ROOT=F:/of/openframeworks/android
+SET NDK_ROOT=F:/of/android-ndk
+SET SDK_ROOT=F:/of/android-sdk
+SET PATH=F:\OF\ANT\bin;F:\OF\android-sdk\platform-tools;F:\OF\MINGW\mingw64\bin;F:\of\mingw\msys\1.0\bin;F:\of\jdk\bin;F:\of\openframeworks\android\libs\openframeworkscompiled\project\android\windows
+make -j1 copydep Release PLATFORM_OS=Android && if ERRORLEVEL 0 GOTO Deploy else GOTO End
+
+:End
+pause
+GOTO:EOF
+
+:Deploy
+ant clean && ant debug && adb -s 02157df2a405393a install -r bin/NoahMatching.apk && adb shell am start -a android.intent.action.MAIN -n cc.openframeworks.NoahMatching/cc.openframeworks.NoahMatching.OFActivity  && adb logcat test:* *:S
+
+pause
