@@ -26,6 +26,8 @@
 using namespace jsonxx;
 using namespace Cog;
 
+#define ARKANOID_LUA
+
 void ArkanoidFactory::OnInit() {
 	ifstream fin;
 	fin.open(ofToDataPath("data.json").c_str());
@@ -40,10 +42,11 @@ void ArkanoidFactory::OnInit() {
 	auto renderer = GETCOMPONENT(Renderer);
 	renderer->AddTileLayer(spritesImage, "spriteLayer", 5000, 1);
 
-
+#ifdef ARKANOID_LUA
 	auto scripts = GETCOMPONENT(LuaScripting);
 	scripts->LoadScript(ofFile("Arkanoid.lua"));
 	InitLuaMapping(scripts->GetLua());
+#endif
 
 	ResetGame();
 }
@@ -328,41 +331,65 @@ void ArkanoidFactory::InitLuaMapping(luabridge::lua_State* L) {
 // ========================================================================================
 
 Behavior* ArkanoidFactory::CreateArkanoidIntroComponent() {
-	//return new ArkanoidIntroComponent();
+#ifdef ARKANOID_LUA
 	return GETCOMPONENT(LuaScripting)->CreateLuaBehavior("ArkanoidIntroComponent");
+#else
+	return new ArkanoidIntroComponent();
+#endif
 }
 
 Behavior* ArkanoidFactory::CreateArkanoidLifeComponent() {
-	//return new ArkanoidLifeComponent(); 
+#ifdef ARKANOID_LUA
 	return GETCOMPONENT(LuaScripting)->CreateLuaBehavior("ArkanoidLifeComponent");
+#else
+	return new ArkanoidLifeComponent();
+#endif
 }
 
 Behavior* ArkanoidFactory::CreateArkanoidSoundComponent() {
-	//return new ArkanoidSoundComponent();
+#ifdef ARKANOID_LUA
 	return GETCOMPONENT(LuaScripting)->CreateLuaBehavior("ArkanoidSoundComponent");
+#else
+	return new ArkanoidSoundComponent();
+#endif
 }
 
 Behavior* ArkanoidFactory::CreateArkanoidStatusComponent() {
-	//return new ArkanoidStatusComponent();
+#ifdef ARKANOID_LUA
 	return GETCOMPONENT(LuaScripting)->CreateLuaBehavior("ArkanoidStatusComponent");
+#else
+	return new ArkanoidStatusComponent();
+#endif
 }
 
 Behavior* ArkanoidFactory::CreateBallCollisionComponent() {
-	//return new BallCollisionComponent();
+#ifdef ARKANOID_LUA
 	return GETCOMPONENT(LuaScripting)->CreateLuaBehavior("BallCollisionComponent");
+#else
+	return new BallCollisionComponent();
+#endif
 }
 
 Behavior* ArkanoidFactory::CreatePaddleComponent() {
-	//return new PaddleInputController();
+#ifdef ARKANOID_LUA
 	return GETCOMPONENT(LuaScripting)->CreateLuaBehavior("PaddleInputController");
+#else
+	return new PaddleInputController();
+#endif
 }
 
 Behavior* ArkanoidFactory::CreateBrickCollisionComponent() {
-	//return new BrickCollisionComponent();
+#ifdef ARKANOID_LUA
 	return GETCOMPONENT(LuaScripting)->CreateLuaBehavior("BrickCollisionComponent");
+#else
+	return new BrickCollisionComponent();
+#endif
 }
 
 Behavior* ArkanoidFactory::CreateGameComponent() {
-	//return new GameComponent();
+#ifdef ARKANOID_LUA
 	return GETCOMPONENT(LuaScripting)->CreateLuaBehavior("GameComponent");
+#else
+	return new GameComponent();
+#endif
 }
