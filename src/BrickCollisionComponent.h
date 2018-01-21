@@ -38,7 +38,7 @@ public:
 	/**
 	 * Resolves the collision
 	 */
-	void ResolveBrickHit(spt<HitInfo> info) {
+	void ResolveBrickHit(RefCountedObjectPtr<HitInfo> info) {
 		auto mesh = bricks->GetMesh<MultiSpriteMesh>();
 		auto sprite = mesh->GetSprite(info->hitIndex);
 		auto& brick = model->GetBrick(sprite);

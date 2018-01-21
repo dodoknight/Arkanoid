@@ -21,6 +21,7 @@
 #include "Renderer.h"
 #include "LuaScripting.h"
 #include "Stage.h"
+#include "FacadeLua.h"
 
 using namespace jsonxx;
 using namespace Cog;
@@ -41,8 +42,8 @@ void ArkanoidFactory::OnInit() {
 
 
 	auto scripts = GETCOMPONENT(LuaScripting);
-	//scripts->LoadScript(ofFile("Arkanoid.lua"));
-	//InitLuaMapping(ScriptManager::GetInstance()->GetLua());
+	scripts->LoadScript(ofFile("Arkanoid.lua"));
+	InitLuaMapping(scripts->GetLua());
 
 	ResetGame();
 }
@@ -266,8 +267,12 @@ void ArkanoidFactory::AddStatus(Node* rootObject, ArkanoidModel* model) {
 	status->AddBehavior(CreateArkanoidStatusComponent());
 }
 
-void ArkanoidFactory::InitLuaMapping(luabridge::lua_State* L) {
+template<>
+static ArkanoidFactory* FacadeLua::CogGetComponent() {
+	return GETCOMPONENT(ArkanoidFactory);
+}
 
+void ArkanoidFactory::InitLuaMapping(luabridge::lua_State* L) {
 
 	luabridge::getGlobalNamespace(L)
 		.beginClass<Brick>("Brick")
@@ -298,17 +303,24 @@ void ArkanoidFactory::InitLuaMapping(luabridge::lua_State* L) {
 		.addFunction("GetAttr_DYNAMICS", reinterpret_cast<Dynamics*(Node::*)()>(&Node::GetAttrPtrStatic<ATTR_MOVEMENT_STR>))
 		.endClass();
 
+
 	luabridge::getGlobalNamespace(L)
-		.beginClass<HitInfo>("HitInfo")
-		.addConstructor<void(*)()>()
+		.deriveClass<HitInfo, MsgPayload>("HitInfo")
+		.addConstructor<void(*)(), RefCountedObjectPtr<HitInfo>>()
 		.addData("hitIndex", &HitInfo::hitIndex)
 		.addData("hitType", &HitInfo::hitType)
 		.endClass();
 
 
 	luabridge::getGlobalNamespace(L)
+		.addFunction("CogGetComponent_ArkanoidFactory", &FacadeLua::CogGetComponent<ArkanoidFactory>)
+		.beginClass<ArkanoidFactory>("ArkanoidFactory")
+		.addFunction("ResetGame", &ArkanoidFactory::ResetGame);
+
+
+	luabridge::getGlobalNamespace(L)
 		.beginClass<Msg>("Msg")
-		.addFunction("GetData_HITINFO", reinterpret_cast<HitInfo*(Msg::*)()>(&Msg::GetDataRawPtr<HitInfo>))
+		.addFunction("GetData_HITINFO", reinterpret_cast<RefCountedObjectPtr<HitInfo>(Msg::*)()>(&Msg::GetDataPtr<HitInfo>))
 		.endClass();
 }
 
@@ -316,41 +328,41 @@ void ArkanoidFactory::InitLuaMapping(luabridge::lua_State* L) {
 // ========================================================================================
 
 Behavior* ArkanoidFactory::CreateArkanoidIntroComponent() {
-	return new ArkanoidIntroComponent();
-	//return ScriptManager::GetInstance()->CreateLuaComponent("ArkanoidIntroComponent");
+	//return new ArkanoidIntroComponent();
+	return GETCOMPONENT(LuaScripting)->CreateLuaBehavior("ArkanoidIntroComponent");
 }
 
 Behavior* ArkanoidFactory::CreateArkanoidLifeComponent() {
-	return new ArkanoidLifeComponent();
-	//return ScriptManager::GetInstance()->CreateLuaComponent("ArkanoidLifeComponent");
+	//return new ArkanoidLifeComponent(); 
+	return GETCOMPONENT(LuaScripting)->CreateLuaBehavior("ArkanoidLifeComponent");
 }
 
 Behavior* ArkanoidFactory::CreateArkanoidSoundComponent() {
-	return new ArkanoidSoundComponent();
-	//return ScriptManager::GetInstance()->CreateLuaComponent("ArkanoidSoundComponent");
+	//return new ArkanoidSoundComponent();
+	return GETCOMPONENT(LuaScripting)->CreateLuaBehavior("ArkanoidSoundComponent");
 }
 
 Behavior* ArkanoidFactory::CreateArkanoidStatusComponent() {
-	return new ArkanoidStatusComponent();
-	//return ScriptManager::GetInstance()->CreateLuaComponent("ArkanoidStatusComponent");
+	//return new ArkanoidStatusComponent();
+	return GETCOMPONENT(LuaScripting)->CreateLuaBehavior("ArkanoidStatusComponent");
 }
 
 Behavior* ArkanoidFactory::CreateBallCollisionComponent() {
-	return new BallCollisionComponent();
-	//return ScriptManager::GetInstance()->CreateLuaComponent("BallCollisionComponent");
+	//return new BallCollisionComponent();
+	return GETCOMPONENT(LuaScripting)->CreateLuaBehavior("BallCollisionComponent");
 }
 
 Behavior* ArkanoidFactory::CreatePaddleComponent() {
-	return new PaddleInputController();
-	//return ScriptManager::GetInstance()->CreateLuaComponent("PaddleInputController");
+	//return new PaddleInputController();
+	return GETCOMPONENT(LuaScripting)->CreateLuaBehavior("PaddleInputController");
 }
 
 Behavior* ArkanoidFactory::CreateBrickCollisionComponent() {
-	return new BrickCollisionComponent();
-	//return ScriptManager::GetInstance()->CreateLuaComponent("BrickCollisionComponent");
+	//return new BrickCollisionComponent();
+	return GETCOMPONENT(LuaScripting)->CreateLuaBehavior("BrickCollisionComponent");
 }
 
 Behavior* ArkanoidFactory::CreateGameComponent() {
-	return new GameComponent();
-	//return ScriptManager::GetInstance()->CreateLuaComponent("GameComponent");
+	//return new GameComponent();
+	return GETCOMPONENT(LuaScripting)->CreateLuaBehavior("GameComponent");
 }

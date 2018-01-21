@@ -106,6 +106,10 @@ struct HitInfo : public MsgPayload {
 		
 	}
 
+	~HitInfo() {
+
+	}
+
 	int hitType;  // type of collision
 	int hitIndex; // index among collidable entities (used only when colliding with a brick)
 };

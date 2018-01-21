@@ -38,7 +38,7 @@ public:
 			return;
 		}
 
-		auto hitInfo = spt<HitInfo>(new HitInfo());
+		auto hitInfo = new HitInfo();
 		bool hit = 
 			CheckPanelCollision(hitInfo) || 
 			CheckPaddleCollision(hitInfo) || 
@@ -57,7 +57,7 @@ public:
 	/**
 	 * Checks collision with all three panels
 	 */
-	bool CheckPanelCollision(spt<HitInfo> hitInfo) const {
+	bool CheckPanelCollision(HitInfo* hitInfo) const {
 		auto& ballBB = owner->GetMesh()->GetBoundingBox();
 		auto& leftPanelBB = leftPanel->GetMesh()->GetBoundingBox();
 		auto& rightPanelBB = rightPanel->GetMesh()->GetBoundingBox();
@@ -86,7 +86,7 @@ public:
 	/**
 	 * Checks collision with the paddle
 	 */
-	bool CheckPaddleCollision(spt<HitInfo> hitInfo) const {
+	bool CheckPaddleCollision(HitInfo* hitInfo) const {
 		auto& paddleBB = paddle->GetMesh()->GetBoundingBox();
 		auto& ballBB = owner->GetMesh()->GetBoundingBox();
 
@@ -113,7 +113,7 @@ public:
 	/**
 	 * Checks collision with all bricks
 	 */
-	bool CheckBrickCollision(spt<HitInfo> hitInfo) const {
+	bool CheckBrickCollision(HitInfo* hitInfo) const {
 
 		auto& ballBB = owner->GetMesh()->GetBoundingBox();
 		auto multiMesh = bricks->GetMesh<MultiSpriteMesh>();
