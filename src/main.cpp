@@ -13,7 +13,7 @@ class ArkanoidApp : public ofxCogApp {
 
 	void InitComponents() {	
 		// set native size
-		GETCOMPONENT(Environment)->SetNativeSize(800, 450);
+		GETCOMPONENT(Environment)->SetNativeSize(640, 400);
 	}
 
 	void InitStage(Stage* stage) {

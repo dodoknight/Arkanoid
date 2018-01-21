@@ -26,9 +26,10 @@ class ArkanoidFactory : public Cog::Component {
 private:
 	ArkanoidModel* model;
 	jsonxx::Object gameConfig;
+	bool resetPending = false;
 public:
 	ArkanoidFactory() {
-		
+		this->initPriority = Cog::InitPriority::LOW; // must be initialized after all other components
 	}
 
 	virtual void OnInit();
@@ -38,7 +39,11 @@ public:
 	 */
 	void InitializeLevel(Cog::Node* rootObject, ArkanoidModel* model, jsonxx::Object& gameConfig);
 
-	void ResetGame();
+	void ResetGame() {
+		this->resetPending = true;
+	}
+
+	virtual void Update(const uint64 delta, const uint64 absolute);
 
 protected:
 
@@ -59,10 +64,7 @@ protected:
 public:
 	void InitLuaMapping(luabridge::lua_State* L);
 
-	virtual void Update(const uint64 delta, const uint64 absolute) {
-		
-	}
-
+	
 private:
 	Cog::Behavior* CreateArkanoidIntroComponent();
 	Cog::Behavior* CreateArkanoidLifeComponent();

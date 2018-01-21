@@ -40,7 +40,7 @@ extern char ARKANOID_MODEL[];
 extern char ATTR_MOVEMENT_STR[];
 
 // sounds
-#define FILE_SOUND_HIT "Examples/arkanoid/hit.wav"
-#define FILE_SOUND_ROUND "Examples/arkanoid/round.mp3"
-#define FILE_SOUND_GAME_OVER "Examples/arkanoid/gameover.mp3"
-#define FILE_SOUND_GAME_START "Examples/arkanoid/intro.mp3"
+#define FILE_SOUND_HIT "hit.wav"
+#define FILE_SOUND_ROUND "round.mp3"
+#define FILE_SOUND_GAME_OVER "gameover.mp3"
+#define FILE_SOUND_GAME_START "intro.mp3"

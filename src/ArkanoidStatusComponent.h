@@ -22,7 +22,7 @@ private:
 public:
 
 	virtual void OnInit() {
-		model = owner->GetRoot()->GetAttr<ArkanoidModel*>(ARKANOID_MODEL);
+		model = owner->GetSceneRoot()->GetAttr<ArkanoidModel*>(ARKANOID_MODEL);
 		SubscribeForMessages(ARK_EVENT_LEVEL_STARTED);
 		SubscribeForMessages(ARK_EVENT_ROUND_STARTED);
 		SubscribeForMessages(ARK_EVENT_GAME_OVER);

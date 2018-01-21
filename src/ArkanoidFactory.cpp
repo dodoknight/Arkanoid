@@ -41,20 +41,29 @@ void ArkanoidFactory::OnInit() {
 
 
 	auto scripts = GETCOMPONENT(LuaScripting);
-	scripts->LoadScript(ofFile("Arkanoid.lua"));
+	//scripts->LoadScript(ofFile("Arkanoid.lua"));
 	//InitLuaMapping(ScriptManager::GetInstance()->GetLua());
+
+	ResetGame();
 }
 
-void ArkanoidFactory::ResetGame() {
-	model->InitLevel();
-	auto stage = GETCOMPONENT(Stage);
-	auto sceneNode = stage->GetActualScene()->GetSceneNode();
 
-	InitializeLevel(sceneNode, model, gameConfig);
+void ArkanoidFactory::Update(const uint64 delta, const uint64 absolute) {
+	if(resetPending) {
+		resetPending = false;
+		auto stage = GETCOMPONENT(Stage);
+		auto scene = stage->GetActualScene();
+		scene->Finish();
+		scene->Init();
+		InitializeLevel(scene->GetSceneNode(), model, gameConfig);
+	}
 }
 
 void ArkanoidFactory::InitializeLevel(Node* rootObject, ArkanoidModel* model, jsonxx::Object& gameConfig) {
 	LoadGameConfig(rootObject, model, gameConfig);
+
+	auto scene = rootObject->GetScene();
+	scene->SetCustomHeight(25);
 
 	if (model->currentLevel == 0) {
 		AddIntro(rootObject, model);
@@ -82,6 +91,7 @@ void ArkanoidFactory::AddIntro(Node* root, ArkanoidModel* model) {
 	auto titleMesh = spt<SpriteMesh>(new SpriteMesh(titleSpr, "spriteLayer"));
 	auto titleObj = new Node("title", titleMesh);
 	root->AddChild(titleObj);
+	root->SubmitChanges(false);
 	trBld.RelativePosition(0.5, 0.25).Anchor(0.5f, 0.5f).BuildAndReset(titleObj);
 
 	// add ship sprite
@@ -89,6 +99,7 @@ void ArkanoidFactory::AddIntro(Node* root, ArkanoidModel* model) {
 	auto shipMesh = spt<SpriteMesh>(new SpriteMesh(shipSpr, "spriteLayer"));
 	auto shipObj = new Node("ship", shipMesh);
 	root->AddChild(shipObj);
+	root->SubmitChanges(false);
 	trBld.RelativePosition(0.5f, 0.65f).Anchor(0.5f, 0.5f).BuildAndReset(shipObj);
 
 	root->AddBehavior(CreateArkanoidSoundComponent());
@@ -98,6 +109,7 @@ void ArkanoidFactory::AddIntro(Node* root, ArkanoidModel* model) {
 void ArkanoidFactory::LoadGameConfig(Node* rootObject, ArkanoidModel* model, jsonxx::Object& gameConfig) {
 
 	auto sprites = gameConfig.get<Array>("sprites");
+	model->currentRound = 0;
 	model->maxLevels = gameConfig.get<Number>("levels_total");
 	model->maxLives = model->currentLives = gameConfig.get<Number>("max_lives");
 	model->ballSpeed = gameConfig.get<Number>("ball_speed");
@@ -111,7 +123,7 @@ void ArkanoidFactory::LoadGameConfig(Node* rootObject, ArkanoidModel* model, jso
 	for (int i = 0; i < sprites.size(); i++) {
 		// create sprite
 		auto& spr = sprites.get<Object>(i);
-		bld.LoadFromJson(spr, "sprites.img", "sprites");
+		bld.LoadFromJson(spr, "sprites.png", "sprites");
 		SpriteSheet* sheet = bld.BuildAndReset();
 		CogStoreSpriteSheet(spt<SpriteSheet>(sheet));
 	}
@@ -155,7 +167,7 @@ void ArkanoidFactory::AddBricks(Node* rootObject, ArkanoidModel* model) {
 		brickSpr->GetTransform().localPos.x = brick.second.position.x * 2 + 1;
 		brickSpr->GetTransform().localPos.y = brick.second.position.y + 1;
 		brickMesh->AddSprite(brickSpr);
-
+		brickSpr->GetTransform().scale *= (CogGetNativeScale() / rootObject->GetScene()->GetCustomScale());
 		// keep relation between Brick and its sprite, we will need it
 		model->brickMap[brickSpr] = brick.second;
 	}
@@ -175,6 +187,7 @@ void ArkanoidFactory::AddPanels(Node* rootObject, ArkanoidModel* model) {
 	auto leftPanel = spt<SpriteMesh>(new SpriteMesh(leftPanelSpr, "spriteLayer"));
 	auto leftPanelObj = new Node("left_panel", leftPanel);
 	rootObject->AddChild(leftPanelObj);
+	rootObject->SubmitChanges(false);
 	trBld.LocalPosition(0, 0).BuildAndReset(leftPanelObj);
 
 	// right panel
@@ -182,6 +195,7 @@ void ArkanoidFactory::AddPanels(Node* rootObject, ArkanoidModel* model) {
 	auto rightPanel = spt<SpriteMesh>(new SpriteMesh(rightPanelSpr, "spriteLayer"));
 	auto rightPanelObj = new Node("right_panel", rightPanel);
 	rootObject->AddChild(rightPanelObj);
+	rootObject->SubmitChanges(false);
 	trBld.LocalPosition(23, 0).BuildAndReset(rightPanelObj);
 
 	// top panel
@@ -189,6 +203,7 @@ void ArkanoidFactory::AddPanels(Node* rootObject, ArkanoidModel* model) {
 	auto topPanel = spt<SpriteMesh>(new SpriteMesh(topPanelSpr, "spriteLayer"));
 	auto topPanelObj = new Node("top_panel", topPanel);
 	rootObject->AddChild(topPanelObj);
+	rootObject->SubmitChanges(false);
 	trBld.LocalPosition(0, 0).BuildAndReset(topPanelObj);
 }
 
@@ -202,6 +217,7 @@ void ArkanoidFactory::AddPaddle(Node* root, ArkanoidModel* model) {
 	auto paddleMesh = spt<SpriteMesh>(new SpriteMesh(paddleSpr, "spriteLayer"));
 	auto paddleObj = new Node("paddle", paddleMesh);
 	root->AddChild(paddleObj);
+	root->SubmitChanges(false);
 	trBld.LocalPosition(10, 23).BuildAndReset(paddleObj);
 
 	// add ball
@@ -209,11 +225,13 @@ void ArkanoidFactory::AddPaddle(Node* root, ArkanoidModel* model) {
 	auto ballMesh = spt<SpriteMesh>(new SpriteMesh(ballSpr, "spriteLayer"));
 	auto ballObj = new Node("ball", ballMesh);
 	root->AddChild(ballObj);
+	root->SubmitChanges(false);
 
 	// remember, the scene is scaled to 25 units of height
 	trBld.LocalPosition(10.0 + model->ballOffset, 22.4f).BuildAndReset(ballObj);
 
-	ballObj->AddBehavior(new Move());			// ball movement
+	ballObj->AddAttr(ATTR_MOVEMENT, new Dynamics());
+	ballObj->AddBehavior(new Move(false));			// ball movement
 	ballObj->AddBehavior(CreateBallCollisionComponent());
 	paddleObj->AddBehavior(CreatePaddleComponent());
 }
@@ -230,6 +248,7 @@ void ArkanoidFactory::AddLives(Node* rootObject, ArkanoidModel* model) {
 		auto lifeObj = new Node(string_format("life_%d", i));
 		lifeObj->SetMesh(lifeMesh);
 		rootObject->AddChild(lifeObj);
+		rootObject->SubmitChanges(false);
 		trBld.LocalPosition(1 + 2 * (i - 1), 24).BuildAndReset(lifeObj);
 	}
 
@@ -242,6 +261,7 @@ void ArkanoidFactory::AddStatus(Node* rootObject, ArkanoidModel* model) {
 	auto status = new Node("status");
 	status->SetMesh(spt<Text>(new Text(CogGetFont("comfont.TTF", 20), "")));
 	rootObject->AddChild(status);
+	rootObject->SubmitChanges(false);
 	trBld.LocalPosition(8, 15).BuildAndReset(status);
 	status->AddBehavior(CreateArkanoidStatusComponent());
 }
