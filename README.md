@@ -66,4 +66,4 @@ Example: level declaration (each brick has its own code)
 
 ## Compatibility
 
-Works with ofxCogEngine 0.3
+Works with ofxCogEngine 0.35
